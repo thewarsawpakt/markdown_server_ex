@@ -1,6 +1,8 @@
 defmodule MarkdownCache do
   @moduledoc """
-  Documentation for `MarkdownCache`.
+  "One could say caching for a blog server is akin to putting lipstick on a pig, yet there is beauty in contradiction"
+
+  GenServer-powered cache server. uses an Agent for storing state
   """
   use GenServer
 
