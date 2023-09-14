@@ -11,10 +11,9 @@ defmodule MarkdownCacheAgent do
   end
 
   def cache({last_access_time, filename, contents}) do
-    Agent.update(__MODULE__, fn state -> Map.put(state, filename, contents))
+    Agent.update(__MODULE__, fn state -> Map.put(state, filename, %{last_access_time: last_access_time, contents: contents}) end)
   end
 
   def purge() do
-    Enum.map(Agent.get(__MODULE__, fn state -> state end), fn {})
   end
 end
