@@ -4,6 +4,7 @@ defmodule MarkdownCache do
 
   GenServer-powered cache server. Uses an Agent for storing state.
   """
+  require Logger
   use GenServer
 
   @posts_dir "posts"
@@ -24,12 +25,17 @@ defmodule MarkdownCache do
     case File.read("#{@posts_dir}/#{filename}") do
       {:ok, contents} ->
         if !cache.has_key?(filename) do
-          Agent.update(MarkdownCacheAgent, fn cache ->
-            Map.put(cache, filename, %CacheEntry{
-              last_access_time: DateTime.utc_now(),
-              contents: contents
-            })
-          end)
+          case Earmark.as_html(contents) do
+            {:ok, document, _} ->
+              Agent.update(MarkdownCacheAgent, fn cache ->
+                Map.put(cache, filename, %CacheEntry{
+                  last_access_time: DateTime.utc_now(),
+                  contents: document
+                })
+              end)
+            {:error, _, error_messages} ->
+              Logger.info("got error(s) whilst transpiling markdown: #{error_messages}]")
+            end
         end
 
         {:reply, contents}
