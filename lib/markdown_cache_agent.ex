@@ -4,14 +4,14 @@ defmodule MarkdownCacheAgent do
   """
   use Agent
 
-
-
   def start_link() do
     Agent.start_link(fn -> Map.new() end, name: __MODULE__)
   end
 
   def cache({last_access_time, filename, contents}) do
-    Agent.update(__MODULE__, fn state -> Map.put(state, filename, %{last_access_time: last_access_time, contents: contents}) end)
+    Agent.update(__MODULE__, fn state ->
+      Map.put(state, filename, %{last_access_time: last_access_time, contents: contents})
+    end)
   end
 
   def purge() do

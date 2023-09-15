@@ -2,7 +2,8 @@ defmodule MarkdownDirWatcher do
   # transient means the task will always be restarted
   use Task, restart: :transient
 
-  @interval 60 * 1_000 # 60 seconds
+  # 60 seconds
+  @interval 60 * 1_000
 
   def start_link(arg) do
     Task.start_link(__MODULE__, :run, [arg])
@@ -10,6 +11,4 @@ defmodule MarkdownDirWatcher do
 
   def process(_) do
   end
-
-
 end

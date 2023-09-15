@@ -20,15 +20,23 @@ defmodule MarkdownCache do
   @spec handle_call({:read, String}) :: {:reply, :enoent | binary}
   def handle_call({:read, filename}) do
     cache = Agent.get(MarkdownCacheAgent, fn cache -> cache end)
+
     case File.read("#{@posts_dir}/#{filename}") do
       {:ok, contents} ->
         if !cache.has_key?(filename) do
-          Agent.update(MarkdownCacheAgent, fn cache -> Map.put(cache, filename, %CacheEntry{last_access_time: DateTime.utc_now(), contents: contents}) end)
+          Agent.update(MarkdownCacheAgent, fn cache ->
+            Map.put(cache, filename, %CacheEntry{
+              last_access_time: DateTime.utc_now(),
+              contents: contents
+            })
+          end)
         end
+
         {:reply, contents}
+
       {:error, :enoent} ->
         {:reply, :enoent}
-      # TODO: handle other possible errors
+        # TODO: handle other possible errors
     end
   end
 
@@ -36,5 +44,4 @@ defmodule MarkdownCache do
   def read(filename) do
     GenServer.call(__MODULE__, MarkdownCache.handle_call({:read, filename}))
   end
-
 end
