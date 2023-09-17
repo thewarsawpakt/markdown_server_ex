@@ -9,6 +9,7 @@ defmodule MarkdownCache do
 
   @posts_dir "posts"
 
+  @spec start_link :: :ignore | {:error, any} | {:ok, pid}
   def start_link do
     GenServer.start_link(__MODULE__, [])
   end
