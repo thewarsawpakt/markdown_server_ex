@@ -11,44 +11,47 @@ defmodule MarkdownCache do
 
   @spec start_link :: :ignore | {:error, any} | {:ok, pid}
   def start_link do
-    GenServer.start_link(__MODULE__, [])
+    GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
 
-  @spec init(any) :: {:error, any} | {:ok, pid}
+  @spec init(any) :: {:ok, %{}}
+  @impl true
   def init(_) do
-    MarkdownCacheAgent.start_link()
+    {:ok, %{}}
   end
 
-  @spec handle_call({:read, String}) :: {:reply, :enoent | binary}
-  def handle_call({:read, filename}) do
+  @impl true
+  def handle_call({:read, filename}, _from, _state) do
     cache = Agent.get(MarkdownCacheAgent, fn cache -> cache end)
 
     case File.read("#{@posts_dir}/#{filename}") do
       {:ok, contents} ->
-        if !cache.has_key?(filename) do
+        if !Map.has_key?(cache, String.to_atom(filename)) do
           case Earmark.as_html(contents) do
             {:ok, document, _} ->
               Agent.update(MarkdownCacheAgent, fn cache ->
-                Map.put(cache, filename, %CacheEntry{
+                Map.put(cache,  String.to_atom(filename), %CacheEntry{
                   last_access_time: DateTime.utc_now(),
                   contents: document
                 })
+                {:ok, contents}
               end)
             {:error, _, error_messages} ->
               Logger.info("got error(s) whilst transpiling markdown: #{error_messages}]")
+
             end
         end
 
-        {:reply, contents}
+        {:reply, contents, %{}}
 
       {:error, :enoent} ->
-        {:reply, :enoent}
+        {:reply, :enoent, %{}}
         # TODO: handle other possible errors
     end
   end
 
   @spec read(String) :: {:reply, :enoent | binary}
   def read(filename) do
-    GenServer.call(__MODULE__, MarkdownCache.handle_call({:read, filename}))
+    GenServer.call(__MODULE__, {:read, filename})
   end
 end
