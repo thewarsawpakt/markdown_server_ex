@@ -27,3 +27,5 @@ markdown_server-*.tar
 
 # VScode LSP extension files
 /.elixir_ls
+
+posts/
