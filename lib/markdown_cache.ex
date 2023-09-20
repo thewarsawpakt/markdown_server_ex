@@ -8,6 +8,7 @@ defmodule MarkdownCache do
   use GenServer
 
   @posts_dir "posts"
+  @max_cache_entries 12 # This is a rather arbitrary limit, but it can be changed later.
 
   @spec start_link :: :ignore | {:error, any} | {:ok, pid}
   def start_link do
@@ -29,8 +30,17 @@ defmodule MarkdownCache do
         if !Map.has_key?(cache, String.to_atom(filename)) do
           case Earmark.as_html(contents) do
             {:ok, document, _} ->
+              if ((Map.to_list(cache) |> length) > @max_cache_entries) do
+                # remove LRU entry
+                Enum.sort(Map.values(cache), fn a, b ->
+                  case Date.compare(a.last_access_time, b.last_access_time) do
+                    :lt -> true
+                    _ -> false
+                  end
+                end)
+              end
               Agent.update(MarkdownCacheAgent, fn cache ->
-                Map.put(cache,  String.to_atom(filename), %CacheEntry{
+                Map.put(cache, String.to_atom(filename), %CacheEntry{
                   last_access_time: DateTime.utc_now(),
                   contents: document
                 })
@@ -38,7 +48,6 @@ defmodule MarkdownCache do
               end)
             {:error, _, error_messages} ->
               Logger.info("got error(s) whilst transpiling markdown: #{error_messages}]")
-
             end
         end
 

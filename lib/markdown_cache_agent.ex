@@ -3,7 +3,6 @@ defmodule MarkdownCacheAgent do
   @doc """
     We use this agent to preserve the cache state in the event of a crash.
   """
-  @max_cache_entries 12 # This is a rather arbitrary limit, but it can be changed later.
   use Agent
 
   @spec start_link :: {:error, any} | {:ok, pid}
