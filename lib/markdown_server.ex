@@ -1,5 +1,5 @@
 defmodule MarkdownServer.Supervisor do
-  @moduledoc"""
+  @moduledoc """
   Runs a server that serves Markdown files.
   """
 
